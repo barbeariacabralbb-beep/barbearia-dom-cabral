@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - Dom Cabral Barbershop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+    <style>
+        :root {
+            /* Paleta Refined Dark Mode */
+            --bg-body: #111111;
+            --bg-card: #1C1C1C;
+            --text-main: #F2F2F2;
+            --text-secondary: #7A5B35;
+            --gold: #E6C37A;
+            --bronze: #B88E4B;
+            --border-gold: rgba(230, 195, 122, 0.25);
+            --btn-text: #111111;
+        }
+
+        body.light-theme {
+            /* Paleta Confortável Light Mode */
+            --bg-body: #F5F4F0;
+            --bg-card: #FFFFFF;
+            --text-main: #2C2621;
+            --text-secondary: #7A6958;
+            --border-gold: rgba(184, 142, 75, 0.25);
+            --btn-text: #F2F2F2;
+        }
+
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: var(--bg-body);
+            min-height: 100vh;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* Sobrescrevendo cores do Tailwind para respeitar o tema */
+        .text-white, .text-gray-900 { color: var(--text-main) !important; transition: color 0.4s ease; }
+        .text-gray-400, .text-gray-300, .text-gray-500 { color: var(--text-secondary) !important; transition: color 0.4s ease; }
+        .text-amber-400 { color: var(--gold) !important; }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 20px 60px rgba(230, 195, 122, 0.15);
+        }
+
+        .input-field {
+            background: var(--bg-body);
+            border: 1px solid var(--border-gold);
+            color: var(--text-main);
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(230, 195, 122, 0.15);
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--bronze) 100%);
+            color: var(--btn-text) !important;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(184, 142, 75, 0.3);
+        }
+
+        /* Botão de Tema */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-gold);
+            color: var(--text-secondary);
+            width: 44px; height: 44px;
+            border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            z-index: 10;
+        }
+        .theme-toggle-btn:hover { border-color: var(--gold); color: var(--gold); transform: scale(1.05); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-card { animation: fadeIn 0.6s ease-out; }
+        
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--btn-text);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 relative">
+
+    <button class="theme-toggle-btn" id="btn-theme-toggle" aria-label="Alternar Tema">
+        <i class="fas fa-sun"></i>
+    </button>
+
+    <div class="login-card rounded-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <img src="/static/Logo_Cabral.png" alt="Dom Cabral Barbershop" class="mx-auto mb-4" style="max-height: 120px; width: auto;">
+            <p class="mt-2" style="color: var(--text-secondary);">Área Administrativa</p>
+        </div>
+
+        <div id="error-message" class="mb-4 hidden">
+            <div class="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="error-text">Usuário ou senha inválidos</span>
+            </div>
+        </div>
+
+        <form id="loginForm">
+            <div class="mb-5">
+                <label class="text-sm block mb-2" style="color: var(--text-main);">
+                    <i class="fas fa-user mr-2" style="color: var(--gold);"></i>Usuário
+                </label>
+                <input type="text" id="username" name="username" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="admin" value="admin">
+            </div>
+            <div class="mb-6">
+                <label class="text-sm block mb-2" style="color: var(--text-main);">
+                    <i class="fas fa-lock mr-2" style="color: var(--gold);"></i>Senha
+                </label>
+                <input type="password" id="password" name="password" required class="input-field w-full px-4 py-3 rounded-lg" placeholder="••••••" value="admin123">
+            </div>
+            <button type="submit" id="submitBtn" class="btn-login w-full py-3 rounded-lg font-bold text-lg flex items-center justify-center gap-2">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t text-center" style="border-color: var(--border-gold);">
+            <p class="text-xs" style="color: var(--text-secondary);">
+                <i class="fas fa-shield-alt mr-1"></i> Área restrita
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // LÓGICA DO TEMA CLARO / ESCURO
+        // ==========================================
+        const themeToggleBtn = document.getElementById('btn-theme-toggle');
+        const themeIcon = themeToggleBtn.querySelector('i');
+
+        // Verifica se o usuário já havia escolhido o tema claro
+        if (localStorage.getItem('barbearia_theme') === 'light') {
+            document.body.classList.add('light-theme');
+            themeIcon.classList.replace('fa-sun', 'fa-moon');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            
+            if (document.body.classList.contains('light-theme')) {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('barbearia_theme', 'light');
+            } else {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('barbearia_theme', 'dark');
+            }
+        });
+
+        // ==========================================
+        // LÓGICA DE LOGIN ORIGINAL MANTIDA INTACTA
+        // ==========================================
+        const form = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+
+        // Verifica erro na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('erro') === '1') {
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Mostra loading
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner"></span> Entrando...';
+            submitBtn.disabled = true;
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Prepara os dados para enviar
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            try {
+                const response = await fetch('/fazer-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                });
+                
+                if (response.ok) {
+                    // Login bem sucedido - redireciona
+                    window.location.href = '/admin';
+                } else {
+                    // Mostra erro
+                    errorText.textContent = 'Usuário ou senha inválidos';
+                    errorMessage.classList.remove('hidden');
+                    setTimeout(() => {
+                        errorMessage.classList.add('hidden');
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                errorText.textContent = 'Erro de conexão com o servidor';
+                errorMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    errorMessage.classList.add('hidden');
+                }, 3000);
+            } finally {
+                // Restaura o botão
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Remove erro ao digitar
+        document.getElementById('username').addEventListener('input', () => {
+            errorMessage.classList.add('hidden');
+        });
+        document.getElementById('password').addEventListener('input', () => {
+            errorMessage.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

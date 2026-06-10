@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Banco e arquivos de runtime
+agenda.db
+*.sqlite
+*.sqlite3
+whatsapp_session/
+whatsapp_status.json
+whatsapp_logs.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# WhatsApp web cache antigo
+.wwebjs_cache/
+.wwebjs_auth/
+
+# Sistema
+.DS_Store
+Thumbs.db

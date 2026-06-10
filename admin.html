@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Dom Cabral Barbershop</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+    <meta name="admin-token" content="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <!-- BYPASS DE CACHE AQUI: ?v=2.0 -->
+    <script src="/admin_bot.js?v=2.0"></script>
+    <style>
+        :root { --bg-body: #111111; --bg-card: #1C1C1C; --text-main: #F2F2F2; --text-secondary: #7A5B35; --gold: #E6C37A; --bronze: #B88E4B; --border-gold: rgba(230, 195, 122, 0.25); }
+        body.light-theme { --bg-body: #F5F4F0; --bg-card: #FFFFFF; --text-main: #2C2621; --text-secondary: #7A6958; --border-gold: rgba(184, 142, 75, 0.3); }
+        body, .sidebar, .main-content, .kpi-card, .section-card, .tabs-container, .modal-content { transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease; }
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; font-weight: 700; }
+        body { background: var(--bg-body); color: var(--text-main); }
+        .sidebar { background: var(--bg-card); border-right: 1px solid var(--border-gold); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+        .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border-gold); }
+        .logo { display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 1.25rem; color: var(--text-main); }
+        .nav-menu { padding: 16px 0; }
+        .nav-item { padding: 12px 20px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; font-weight: 500; }
+        .nav-item:hover { background: rgba(230, 195, 122, 0.05); color: var(--gold); }
+        .nav-item.active { background: linear-gradient(90deg, rgba(230, 195, 122, 0.15) 0%, transparent 100%); color: var(--gold); border-left: 3px solid var(--gold); padding-left: 17px; }
+        .nav-item i { width: 20px; text-align: center; color: var(--gold); }
+        .main-content { padding: 32px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .header-title h1 { font-size: 2rem; color: var(--text-main); margin-bottom: 4px; }
+        .header-title p { color: var(--text-secondary); font-size: 0.95rem; }
+        .tabs-container { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 2px solid var(--border-gold); background: var(--bg-card); border-radius: 12px 12px 0 0; padding: 0 24px; overflow-x: auto; }
+        .tab-button { padding: 16px 24px; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; margin-bottom: -2px; font-size: 0.95rem; white-space: nowrap; }
+        .tab-button:hover, .tab-button.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .kpi-card { background: var(--bg-card); border-radius: 12px; padding: 24px; border: 1px solid var(--border-gold); }
+        .kpi-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+        .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .kpi-title { color: var(--text-secondary); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; }
+        .kpi-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(230, 195, 122, 0.1); color: var(--gold); }
+        .kpi-value { font-size: 1.875rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+        .kpi-change { font-size: 0.875rem; color: var(--gold); font-weight: 600; }
+        .section-card { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-gold); margin-bottom: 24px; overflow: hidden; }
+        .section-header { padding: 24px; border-bottom: 1px solid var(--border-gold); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .section-title { font-size: 1.125rem; color: var(--text-main); font-weight: 700; }
+        .filter-input, .form-group input, .form-group select, .input-field { padding: 8px 16px; border: 1px solid var(--border-gold); background: var(--bg-card); color: var(--text-main); border-radius: 8px; font-size: 0.875rem; color-scheme: dark light; }
+        .filter-input:focus, .form-group input:focus, .form-group select:focus, .input-field:focus { outline: none; border-color: var(--gold); }
+        .btn-filter, .btn-new, .btn-primary { padding: 8px 16px; background: var(--bronze); color: var(--text-main); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-filter.secondary, .btn-secondary { background: var(--bg-body); border: 1px solid var(--border-gold); color: var(--text-main); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: rgba(0,0,0,0.2); border-bottom: 2px solid var(--border-gold); }
+        body.light-theme thead { background: rgba(0,0,0,0.05); }
+        th { padding: 16px 24px; text-align: left; font-weight: 700; color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; }
+        tbody tr { border-bottom: 1px solid rgba(230, 195, 122, 0.1); }
+        td { padding: 16px 24px; font-size: 0.875rem; color: var(--text-main); }
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-agendado { background: rgba(230, 195, 122, 0.15); color: var(--gold); }
+        .badge-concluido { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .badge-cancelado { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .badge-pendente { background: rgba(230, 195, 122, 0.15); color: var(--gold); }
+        .badge-pago { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .actions-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-action { width: 32px; height: 32px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-complete { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        .btn-payment { background: rgba(230, 195, 122, 0.1); color: var(--gold); }
+        .btn-delete { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; padding: 32px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-gold); padding-bottom: 16px; }
+        .modal-header h2 { font-size: 1.25rem; color: var(--text-main); }
+        .modal-close { background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; color: var(--text-main); margin-bottom: 8px; font-size: 0.875rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-actions button { flex: 1; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .toast { position: fixed; top: 24px; right: 24px; padding: 16px 24px; border-radius: 8px; z-index: 1001; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .toast-success { background: #15803d; color: white; }
+        .toast-error { background: #991b1b; color: white; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -256px; top: 0; width: 256px; height: 100vh; z-index: 999; }
+            .sidebar.open { left: 0; }
+            .main-content { padding: 16px; margin-left: 0 !important; }
+            .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ef4444; 
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #22c55e;
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        .toggle-label-text {
+            font-weight: 600;
+            display: inline-block;
+            min-width: 65px; 
+        }
+        
+        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border-gold); }
+        .fc .fc-toolbar-title { color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1.25rem; }
+        .fc .fc-button-primary { background-color: var(--bronze) !important; border-color: var(--bronze) !important; text-transform: capitalize; }
+        .fc .fc-button-primary:hover { background-color: var(--gold) !important; }
+        .fc-daygrid-day-number, .fc-col-header-cell-cushion { color: var(--text-secondary); text-decoration: none; }
+        .fc-timegrid-slot-label-cushion { color: var(--text-secondary); }
+        .fc-event { cursor: pointer; border-radius: 6px; border: none; font-weight: 600; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .fc-timegrid-event { min-height: 24px !important; } /* Altura mínima para não virar uma "panqueca" */
+        .fc-timegrid-event .fc-event-main { padding: 2px 4px; font-size: 0.75rem; line-height: 1.2; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+        .fc-event-time { font-size: 0.65rem; opacity: 0.8; margin-bottom: 1px; white-space: nowrap; }
+        .fc-event-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ==========================================
+           CORREÇÕES RESPONSIVAS (MOBILE / CELULAR)
+           ========================================== */
+        @media (max-width: 768px) {
+            /* 1. Salva o Calendário: Permite rolar para o lado em vez de espremer */
+            #agenda-calendar-view { overflow-x: auto; padding: 10px !important; }
+            #calendar { min-width: 700px; }
+
+            /* 2. Salva os Horários: Coloca "Dia", "Chave" e "Horas" um embaixo do outro */
+            #horarios-container > div { 
+                flex-direction: column !important; 
+                align-items: flex-start !important; 
+                gap: 12px !important; 
+            }
+            #horarios-container input[type="time"] { width: 100%; margin-top: 4px; }
+            #horarios-container .flex { width: 100%; justify-content: space-between; }
+
+            /* 3. Salva o Bot e outras Abas: Transforma itens lado a lado em cascata */
+            .tab-content .flex { flex-wrap: wrap !important; }
+            .form-row { flex-direction: column !important; gap: 16px !important; }
+            
+            /* Se o Bot usar Grid de 2 colunas, transformamos em 1 coluna no celular */
+            .grid { grid-template-columns: 1fr !important; }
+            
+            /* Ajusta os botões e títulos do topo para não vazarem */
+            .section-header { flex-direction: column; align-items: stretch !important; gap: 12px; }
+            .section-header > div { width: 100%; justify-content: flex-start; }
+            .section-header button { flex: 1; justify-content: center; }
+            
+            /* Inputs ocupam a tela toda */
+            .filter-input, .input-field { width: 100% !important; }
+
+            /* 4. Salva a aba do Bot de Mensagens (Força colunas 50/50 a empilharem) */
+            /* Ajustes para os balões de evento não vazarem texto */
+            .fc-event { cursor: pointer; border-radius: 6px; border: none; font-weight: 600; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+            .fc-timegrid-event .fc-event-main { padding: 2px 4px; font-size: 0.75rem; line-height: 1.1; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-start; }
+            .fc-event-time { font-size: 0.65rem; opacity: 0.8; margin-bottom: 1px; white-space: nowrap; }
+            .fc-event-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-40 hidden md:hidden" style="backdrop-filter: blur(2px);" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar fixed left-0 top-0 w-64 h-screen overflow-y-auto z-50 transition-transform duration-300 transform -translate-x-full md:translate-x-0" id="sidebar">
+        <div class="sidebar-header" style="padding: 16px;">
+            <div class="logo"><img src="/static/Logo_Cabral.png" alt="Dom Cabral Barbershop" style="max-height: 80px; width: auto; border-radius: 20%;"></div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+            <div class="nav-item" data-tab="agenda"><i class="fas fa-calendar"></i><span>Agendamentos</span></div>
+            <div class="nav-item" data-tab="clientes"><i class="fas fa-users"></i><span>Clientes</span></div>
+            <div class="nav-item" data-tab="financeiro"><i class="fas fa-money-bill-wave"></i><span>Financeiro</span></div>
+            <div class="nav-item" data-tab="servicos"><i class="fas fa-scissors"></i><span>Serviços</span></div>
+            <div class="nav-item" data-tab="configuracoes"><i class="fas fa-cog"></i><span>Configurações</span></div>
+            <div class="nav-item" data-tab="bot"><i class="fas fa-robot"></i><span>Bot de Mensagens</span></div>
+        </nav>
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; border-top: 1px solid var(--border-gold);">
+            <div class="nav-item" id="logout-area" style="padding: 12px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border-gold);">
+                <i class="fas fa-user-circle"></i>
+                <div style="flex: 1;"><p style="font-weight: 600; font-size: 0.875rem; color: var(--text-main);">Admin</p><p style="font-size: 0.75rem; color: var(--text-secondary);">Sair</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content ml-0 md:ml-64 transition-all duration-300" id="main-content">
+        <div class="header-top">
+            <div class="header-title"><h1>Dashboard</h1><p>Bem-vindo de volta! Aqui está o resumo do seu negócio.</p></div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="btn-theme-toggle" style="background: var(--bg-card); border: 1px solid var(--border-gold); color: var(--text-secondary); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button class="md:hidden text-white p-3 rounded-lg" id="btn-toggle-sidebar" style="background: var(--bronze);" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-button active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+            <button class="tab-button" data-tab="agenda"><i class="fas fa-calendar"></i> Agenda</button>
+            <button class="tab-button" data-tab="clientes"><i class="fas fa-users"></i> Clientes</button>
+            <button class="tab-button" data-tab="financeiro"><i class="fas fa-money-bill-wave"></i> Financeiro</button>
+            <button class="tab-button" data-tab="servicos"><i class="fas fa-scissors"></i> Serviços</button>
+            <button class="tab-button" data-tab="configuracoes"><i class="fas fa-cog"></i> Configurações</button>
+            <button class="tab-button" data-tab="bot"><i class="fas fa-robot"></i> Bot WhatsApp</button>
+        </div>
+
+        <div id="dashboard" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Total de Agendamentos</p><p class="kpi-value" id="total-bookings">0</p></div><div class="kpi-icon"><i class="fas fa-calendar-check"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Agendamentos Hoje</p><p class="kpi-value" id="today-bookings">0</p></div><div class="kpi-icon"><i class="fas fa-hourglass-end"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Receita Total</p><p class="kpi-value" id="revenue">R$ 0,00</p></div><div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Ticket Médio</p><p class="kpi-value" id="average-ticket">R$ 0,00</p></div><div class="kpi-icon"><i class="fas fa-chart-pie"></i></div></div></div>
+            </div>
+            <div class="section-card"><div class="section-header"><h3 class="section-title"><i class="fas fa-chart-bar"></i> Serviços Mais Realizados</h3></div><div style="padding: 24px;"><canvas id="servicesChart" height="80"></canvas></div></div>
+        </div>
+
+        <div id="agenda" class="tab-content">
+            <div class="section-card">
+                <div class="section-header" style="flex-wrap: wrap; gap: 16px;">
+                    <h2 class="section-title"><i class="fas fa-list"></i> Agendamentos</h2>
+                    
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div style="background: var(--bg-body); border: 1px solid var(--border-gold); border-radius: 8px; overflow: hidden; display: flex;">
+                            <button id="btn-view-list" class="btn-primary" style="border-radius: 0; padding: 8px 16px; border: none;" onclick="toggleAgendaView('list')"><i class="fas fa-list"></i> Lista</button>
+                            <button id="btn-view-calendar" class="btn-secondary" style="border-radius: 0; padding: 8px 16px; border: none;" onclick="toggleAgendaView('calendar')"><i class="fas fa-calendar-alt"></i> Calendário</button>
+                        </div>
+                        <button class="btn-new" id="btn-new-booking"><i class="fas fa-plus"></i> Novo Agendamento</button>
+                    </div>
+                </div>
+                
+                <div id="agenda-list-view" style="overflow-x: auto; display: block;">
+                    <table class="w-full">
+                        <thead><tr><th>Cliente</th><th>Contato (Whats)</th><th>Data</th><th>Hora</th><th>Serviço</th><th>Preço</th><th>Status</th><th>Pagamento</th><th>Ações</th></tr></thead>
+                        <tbody id="bookings-table"><tr><td colspan="9" class="empty-state">Carregando agendamentos...</td></tr></tbody>
+                    </table>
+                </div>
+
+                <div id="agenda-calendar-view" style="display: none; padding: 24px;">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div id="clientes" class="tab-content">
+            <div class="section-card">
+                <div class="section-header" style="flex-direction: column; align-items: stretch; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <h2 class="section-title"><i class="fas fa-users"></i> Clientes</h2>
+                        <div style="color: var(--text-secondary);">Total: <span id="total-clientes">0</span></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <div style="flex: 1; min-width: 200px; position: relative;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 12px; color: var(--text-secondary);"></i>
+                            <input type="text" id="search-cliente" class="filter-input w-full" placeholder="Buscar por nome ou WhatsApp..." style="padding-left: 36px; width: 100%;" oninput="filtrarEOrdenarClientes()">
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 600;">Ordenar por:</span>
+                            <select id="sort-cliente" class="filter-input" onchange="filtrarEOrdenarClientes()">
+                                <option value="nome_asc">Nome (A-Z)</option>
+                                <option value="gasto_desc">Maior Gasto (R$)</option>
+                                <option value="agendamentos_desc">Mais Agendamentos</option>
+                                <option value="concluidos_desc">Mais Concluídos</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Contato (Whats)</th> <th class="text-center">Agendamentos</th>
+                                <th class="text-center">Concluídos</th>
+                                <th class="text-center">Gasto</th>
+                                <th>Última Visita</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-table">
+                            <tr><td colspan="6" class="empty-state">Carregando clientes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINANCEIRO -->
+        <div id="financeiro" class="tab-content">
+            <div class="section-card" style="margin-bottom: 24px;">
+                <div class="section-header" style="padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-primary btn-fin-filter" data-range="mes" onclick="aplicarFiltroFinanceiro('mes')">Este Mês</button>
+                        <button class="btn-filter secondary btn-fin-filter" data-range="hoje" onclick="aplicarFiltroFinanceiro('hoje')">Hoje</button>
+                        <button class="btn-filter secondary btn-fin-filter" data-range="semana" onclick="aplicarFiltroFinanceiro('semana')">Últimos 7 Dias</button>
+                        <button class="btn-filter secondary btn-fin-filter" data-range="ano" onclick="aplicarFiltroFinanceiro('ano')">Este Ano</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.875rem; font-weight: 600; color: var(--text-main);">Customizado:</span>
+                        <input type="date" id="fin-data-inicio" class="filter-input">
+                        <span style="font-size: 0.875rem; color: var(--text-secondary);">até</span>
+                        <input type="date" id="fin-data-fim" class="filter-input">
+                        <button class="btn-primary" onclick="aplicarFiltroFinanceiroCustomizado()" title="Pesquisar Período"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Receita Total (Histórico)</p><div id="receita-total" class="text-2xl font-bold" style="color: var(--bronze);">R$ 0,00</div></div><div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Receita do Período</p><div id="receita-mes" class="text-2xl font-bold" style="color: var(--gold);">R$ 0,00</div></div><div class="kpi-icon"><i class="fas fa-calendar"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Pendentes (Período)</p><div id="pagamentos-pendentes" class="text-2xl font-bold" style="color: #F7941D;">0</div></div><div class="kpi-icon"><i class="fas fa-clock"></i></div></div></div>
+                <div class="kpi-card"><div class="kpi-header"><div><p class="kpi-title">Ticket Médio (Período)</p><div id="ticket-medio" class="text-2xl font-bold" style="color: var(--bronze);">R$ 0,00</div></div><div class="kpi-icon"><i class="fas fa-chart-line"></i></div></div></div>
+            </div>
+            <div class="section-card"><div class="section-header"><h3 class="section-title"><i class="fas fa-chart-line"></i> Evolução da Receita</h3></div><div style="padding: 24px;"><canvas id="revenueChart" height="80"></canvas></div></div>
+        </div>
+
+        <div id="servicos" class="tab-content">
+            <div class="section-card">
+                <div class="section-header"><h2 class="section-title"><i class="fas fa-scissors"></i> Gerenciamento de Serviços</h2><button class="btn-new" id="btn-new-service"><i class="fas fa-plus"></i> Novo Serviço</button></div>
+                <div style="overflow-x: auto;"><table class="w-full"><thead><tr><th>Nome do Serviço</th><th>Duração</th><th>Valor (R$)</th><th class="text-center">Ações</th></tr></thead><tbody id="servicos-table"><tr><td colspan="4" class="empty-state">Carregando serviços...</td></tr></tbody></table></div>
+            </div>
+        </div>
+
+        <div id="configuracoes" class="tab-content">
+            <div class="section-card">
+                <div class="section-header"><h2 class="section-title"><i class="fas fa-clock"></i> Horários de Expediente</h2></div>
+                <div style="padding: 24px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Defina os dias e horários padrão em que a barbearia estará aberta.</p>
+                    <form id="form-horarios" onsubmit="salvarHorarios(event)">
+                        <div id="horarios-container" class="grid gap-4 mb-6">
+                            </div>
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Horários</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header"><h2 class="section-title"><i class="fas fa-calendar-times"></i> Bloqueios Excepcionais (Feriados/Folgas)</h2></div>
+                <div style="padding: 24px;">
+                    <form id="form-bloqueio" class="flex gap-4 flex-wrap items-start mb-8 p-4 rounded-xl" style="background: var(--bg-body); border: 1px solid var(--border-gold);">
+                        
+                        <div style="flex: 100%; display: flex; gap: 16px; margin-bottom: 8px;">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm" style="color: var(--text-main);">
+                                <input type="radio" name="tipo-bloqueio" value="dia" checked onchange="toggleTipoBloqueio()"> Dia Inteiro
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm" style="color: var(--text-main);">
+                                <input type="radio" name="tipo-bloqueio" value="periodo" onchange="toggleTipoBloqueio()"> Período de Horário
+                            </label>
+                        </div>
+
+                        <div style="flex: 1; min-width: 180px;"><label class="block mb-2 text-sm font-semibold" style="color: var(--text-main);">Data</label><input type="date" id="data-bloqueio" required class="input-field w-full" style="margin-bottom:0;"></div>
+                        
+                        <div id="div-bloqueio-horas" style="display: none; gap: 16px; flex: 1; min-width: 200px;">
+                            <div style="flex: 1;"><label class="block mb-2 text-sm font-semibold" style="color: var(--text-main);">Início</label><input type="time" id="bloqueio-inicio" class="input-field w-full" style="margin-bottom:0;"></div>
+                            <div style="flex: 1;"><label class="block mb-2 text-sm font-semibold" style="color: var(--text-main);">Fim</label><input type="time" id="bloqueio-fim" class="input-field w-full" style="margin-bottom:0;"></div>
+                        </div>
+
+                        <div style="flex: 2; min-width: 200px;"><label class="block mb-2 text-sm font-semibold" style="color: var(--text-main);">Motivo (Aviso ao cliente)</label><input type="text" id="motivo-bloqueio" required class="input-field w-full" style="margin-bottom:0;"></div>
+                        
+                        <div style="flex: 100%; display: flex; justify-content: flex-end; margin-top: 8px;">
+                            <button type="submit" class="btn-primary py-2 px-6" style="height: 42px;">Bloquear Agenda</button>
+                        </div>
+                    </form>
+                    <table class="w-full border rounded-lg" style="border-color: var(--border-gold);"><thead><tr><th>Data</th><th>Motivo</th><th class="text-center">Desbloquear</th></tr></thead><tbody id="bloqueios-table"><tr><td colspan="3" class="empty-state">Carregando...</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: BOT DE MENSAGENS WHATSAPP -->
+        <div id="bot" class="tab-content">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+
+                <div class="section-card" style="margin-bottom: 0;">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-wifi"></i> Status do WhatsApp</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-filter secondary" onclick="atualizarDados()" title="Atualizar"><i class="fas fa-sync-alt"></i></button>
+                            <button class="btn-filter secondary" onclick="reconectarWhatsApp()" title="Reconectar" style="background: #ef4444; color: white; border-color: #ef4444;">
+                                <i class="fas fa-power-off"></i> Reconectar
+                            </button>
+                        </div>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div id="bot-status-conteudo" style="margin-bottom: 16px;">
+                            <div style="color: var(--text-secondary);">Carregando status...</div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            Última verificação: <span id="bot-ultima-atualizacao">—</span>
+                            <span style="margin-left: 8px; color: var(--gold);">(atualiza a cada 5s)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-bottom: 0;">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-qrcode"></i> QR Code para Conexão</h2>
+                        <button class="btn-filter secondary" onclick="carregarStatusBot()"><i class="fas fa-redo"></i> Atualizar QR</button>
+                    </div>
+                    <div style="padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                        <div id="bot-qrcode-container">
+                            <div style="text-align: center; padding: 16px; color: var(--text-secondary);">Carregando...</div>
+                        </div>
+                        <div style="text-align: center; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.8;">
+                            <strong style="color: var(--gold);">Como conectar:</strong><br>
+                            1. Abra o WhatsApp no celular &nbsp;→&nbsp;
+                            2. Toque nos 3 pontos &nbsp;→&nbsp;
+                            3. <em>WhatsApp Web</em> &nbsp;→&nbsp;
+                            4. Escaneie o QR Code
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-grid" style="margin-bottom: 24px;">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div><p class="kpi-title">Total Enviadas</p><p class="kpi-value" id="bot-stat-total">0</p></div>
+                        <div class="kpi-icon"><i class="fas fa-paper-plane"></i></div>
+                    </div>
+                    <p class="kpi-change">Histórico completo</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div><p class="kpi-title">Enviadas Hoje</p><p class="kpi-value" id="bot-stat-hoje">0</p></div>
+                        <div class="kpi-icon"><i class="fas fa-calendar-day"></i></div>
+                    </div>
+                    <p class="kpi-change">Mensagens do dia</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div><p class="kpi-title">Taxa de Sucesso</p><p class="kpi-value" id="bot-stat-taxa">0%</p></div>
+                        <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                    <p class="kpi-change">Entregues vs Falhas</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div><p class="kpi-title">Próximo Lembrete</p><p class="kpi-value" style="font-size: 1rem;" id="bot-stat-proximo">—</p></div>
+                        <div class="kpi-icon"><i class="fas fa-bell"></i></div>
+                    </div>
+                    <p class="kpi-change">Agendamento mais próximo</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div class="section-card" style="margin-bottom: 0;">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-sliders-h"></i> Configurações do Bot</h2>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div class="form-group">
+                            <label style="color: var(--text-main);">⏱️ Tempo de antecedência (minutos)</label>
+                            <input type="number" id="bot-config-antecedencia" class="input-field w-full" value="60" min="5" max="1440" style="margin-top: 8px;">
+                        </div>
+                        <div class="form-row" style="margin-bottom: 16px;">
+                            <div class="form-group">
+                                <label style="color: var(--text-main);">🌅 Lembrete matinal</label>
+                                <input type="time" id="bot-config-matinal" class="input-field w-full" value="08:00" style="margin-top: 8px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="color: var(--text-main);">🌇 Lembrete vespertino</label>
+                                <input type="time" id="bot-config-vespertino" class="input-field w-full" value="13:00" style="margin-top: 8px;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="bot-config-ativo" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span style="color: var(--text-main); font-weight: 600;">Ativar lembretes automáticos</span>
+                        </div>
+                        <button id="btn-salvar-config-bot" class="btn-primary w-full" style="width: 100%; justify-content: center;">
+                            <i class="fas fa-save"></i> Salvar Configurações
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-bottom: 0;">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-paper-plane"></i> Envio Manual</h2>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div style="margin-bottom: 20px; padding: 16px; border-radius: 10px; background: var(--bg-body); border: 1px solid var(--border-gold);">
+                            <p style="font-weight: 700; color: var(--text-main); margin-bottom: 12px; font-size: 0.9rem;">📅 Enviar lembrete para agendamento</p>
+                            <select id="bot-select-agendamento" class="input-field w-full" style="margin-bottom: 12px;">
+                                <option value="">Carregando agendamentos...</option>
+                            </select>
+                            <button id="btn-enviar-agendamento" class="btn-primary w-full" onclick="enviarLembreteAgendamento()" style="width: 100%; justify-content: center;">
+                                <i class="fas fa-paper-plane"></i> Enviar Lembrete
+                            </button>
+                        </div>
+
+                        <div style="padding: 16px; border-radius: 10px; background: var(--bg-body); border: 1px solid var(--border-gold);">
+                            <p style="font-weight: 700; color: var(--text-main); margin-bottom: 12px; font-size: 0.9rem;">✍️ Mensagem personalizada</p>
+                            <div class="form-group">
+                                <input type="text" id="bot-teste-numero" class="input-field w-full" placeholder="Ex: 35998765432 (com DDD, sem espaços)" style="margin-bottom: 8px;">
+                            </div>
+                            <div class="form-group">
+                                <textarea id="bot-teste-mensagem" class="input-field w-full" rows="3" placeholder="Digite sua mensagem..." style="resize: vertical; font-family: inherit;"></textarea>
+                            </div>
+                            <button id="btn-enviar-teste" class="btn-primary w-full" onclick="enviarTesteManual()" style="width: 100%; justify-content: center; margin-top: 4px;">
+                                <i class="fas fa-paper-plane"></i> Enviar Mensagem de Teste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="newBookingModal">
+        <div class="modal-content"><div class="modal-header"><h2>Novo Agendamento</h2><button class="modal-close" onclick="fecharModal('newBookingModal')">×</button></div>
+            <form id="newBookingForm">
+                <div class="form-row"><div class="form-group"><label>Nome</label><input type="text" id="newNome" required></div><div class="form-group"><label>WhatsApp</label><input type="text" id="newTelefone"></div></div>
+                <div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="newData" required></div><div class="form-group"><label>Hora</label><input type="time" id="newHora" required></div></div>
+                <div class="form-group"><label>Serviço</label><select id="newServico" required><option value="">Carregando...</option></select></div>
+                <div class="modal-actions"><button type="button" class="btn-secondary" onclick="fecharModal('newBookingModal')">Cancelar</button><button type="submit" class="btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="newServiceModal">
+        <div class="modal-content"><div class="modal-header"><h2>Cadastrar Serviço</h2><button class="modal-close" onclick="fecharModal('newServiceModal')">×</button></div>
+            <form id="newServiceForm">
+                <div class="form-group"><label>Nome</label><input type="text" id="servicoNome" required></div>
+                <div class="form-row"><div class="form-group"><label>Tempo (min)</label><input type="number" id="servicoTempo" required></div><div class="form-group"><label>Valor (R$)</label><input type="number" step="0.01" id="servicoValor" required></div></div>
+                <div class="modal-actions"><button type="button" class="btn-secondary" onclick="fecharModal('newServiceModal')">Cancelar</button><button type="submit" class="btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="deleteModal">
+        <div class="modal-content"><div class="modal-header"><h2>Atenção</h2><button class="modal-close" onclick="fecharModal('deleteModal')">×</button></div>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">Tem certeza que deseja cancelar?</p>
+        <div class="modal-actions"><button type="button" class="btn-secondary" onclick="fecharModal('deleteModal')">Não</button><button type="button" class="btn-primary" style="background: #991b1b;" id="btn-confirm-delete">Sim, Cancelar</button></div></div>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content"><div class="modal-header"><h2>Editar Agendamento</h2><button class="modal-close" onclick="fecharModal('editModal')">×</button></div>
+            <form id="editForm">
+                <div class="form-row">
+                    <div class="form-group"><label>Nome</label><input type="text" id="editNome" required></div>
+                    <div class="form-group"><label>WhatsApp</label><input type="text" id="editTelefone"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Data</label><input type="date" id="editData" required></div>
+                    <div class="form-group"><label>Hora</label><input type="time" id="editHora" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Serviço</label><select id="editServico" required><option value="">Carregando...</option></select></div>
+                    <div class="form-group"><label>Status</label><select id="editStatus" required><option value="Agendado">Agendado</option><option value="Confirmado">Confirmado</option><option value="Concluído">Concluído</option><option value="Cancelado">Cancelado</option></select></div>
+                </div>
+                <div class="form-group"><label>Pagamento</label><select id="editPagamento" required><option value="Pendente">Pendente</option><option value="Pago">Pago</option></select></div>
+                <div class="modal-actions"><button type="button" class="btn-secondary" onclick="fecharModal('editModal')">Cancelar</button><button type="submit" class="btn-primary">Salvar Alterações</button></div>
+            </form>
+        </div>
+    </div>
+        <script>
+        const API_BASE = window.location.origin;
+        let allBookings = [];
+        let allClientes = []; 
+        let precosGlobais = {};
+        let temposGlobais = {};
+        let currentDeletingId = null;
+        let currentEditingId = null;
+        let myServicesChart = null; 
+        let myRevenueChart = null;
+        let calendar = null;
+
+        function formatCurrency(v) { return new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(v); }
+        function formatDate(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+        function showToast(msg, type) {
+            const t = document.createElement('div'); t.className = `toast toast-${type}`;
+            t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i> <span>${msg}</span>`;
+            document.body.appendChild(t); setTimeout(() => t.remove(), 4000);
+        }
+        function fecharModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // ==========================================
+        // CONTROLE DO MENU MOBILE
+        // ==========================================
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            // Empurra a barra pra dentro/fora
+            sidebar.classList.toggle('-translate-x-full');
+            
+            // Liga/Desliga o fundo escuro
+            if (sidebar.classList.contains('-translate-x-full')) {
+                overlay.classList.add('hidden');
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        };
+
+        // Fecha o menu mobile sozinho quando clica em alguma aba
+        document.querySelectorAll('.sidebar .nav-item[data-tab]').forEach(el => {
+            el.addEventListener('click', () => {
+                if (window.innerWidth < 768) { // 768px é a largura limite de celular/tablet
+                    toggleSidebar();
+                }
+            });
+        });
+
+        const themeBtn = document.getElementById('btn-theme-toggle');
+        if (themeBtn) {
+            const icon = themeBtn.querySelector('i');
+            if (localStorage.getItem('barbearia_theme') === 'light') { document.body.classList.add('light-theme'); if(icon) icon.classList.replace('fa-sun', 'fa-moon'); }
+            themeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                const isLight = document.body.classList.contains('light-theme');
+                if(icon) icon.classList.replace(isLight ? 'fa-sun' : 'fa-moon', isLight ? 'fa-moon' : 'fa-sun');
+                localStorage.setItem('barbearia_theme', isLight ? 'light' : 'dark');
+                if(myServicesChart) myServicesChart.update();
+                if(myRevenueChart) myRevenueChart.update();
+            });
+        }
+
+        // ==========================================
+        // ABAS E TÍTULOS DINÂMICOS
+        // ==========================================
+        const tabTitles = {
+            'dashboard': { title: 'Dashboard', sub: 'Bem-vindo de volta! Aqui está o resumo do seu negócio.' },
+            'agenda': { title: 'Agenda', sub: 'Gerencie os horários e veja os próximos atendimentos.' },
+            'clientes': { title: 'Clientes', sub: 'Histórico, contatos e fidelização dos seus clientes.' },
+            'financeiro': { title: 'Financeiro', sub: 'Controle de faturamento, ticket médio e pendências.' },
+            'servicos': { title: 'Serviços', sub: 'Catálogo de cortes, barbas e outros serviços.' },
+            'configuracoes': { title: 'Configurações', sub: 'Horários de expediente, bloqueios e regras da barbearia.' },
+            'bot': { title: 'Bot WhatsApp', sub: 'Configure lembretes e mensagens automáticas para os clientes.' },
+            'bot-whatsapp': { title: 'Bot WhatsApp', sub: 'Configure lembretes e mensagens automáticas para os clientes.' }
+        };
+
+        function switchTab(tabId) {
+            // 1. Troca as classes "active" (Sua lógica original)
+            document.querySelectorAll('.tab-content, .tab-button, .sidebar .nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId)?.classList.add('active');
+            document.querySelector(`.tab-button[data-tab="${tabId}"]`)?.classList.add('active');
+            document.querySelector(`.sidebar .nav-item[data-tab="${tabId}"]`)?.classList.add('active');
+            
+            // 2. NOVA LÓGICA: Atualiza o Título e Subtítulo lá no topo da página
+            const headerTitle = document.querySelector('.header-title h1');
+            const headerSub = document.querySelector('.header-title p');
+            if (headerTitle && headerSub && tabTitles[tabId]) {
+                headerTitle.innerText = tabTitles[tabId].title;
+                headerSub.innerText = tabTitles[tabId].sub;
+            }
+
+            // 3. Carrega as funções de cada tela (Sua lógica original INTACTA)
+            if (tabId === 'dashboard' || tabId === 'agenda') loadBookings();
+            if (tabId === 'clientes') loadClientes();
+            if (tabId === 'financeiro') loadFinanceiro();
+            if (tabId === 'servicos') loadServicos();
+            if (tabId === 'configuracoes') { loadHorarios(); loadBloqueios(); }
+            if (tabId === 'bot') { 
+                if (typeof initBotModule === 'function') { initBotModule(); } 
+            } else { 
+                if (typeof pararPolling === 'function') pararPolling(); 
+            }
+        }
+        document.querySelectorAll('.tab-button, .sidebar .nav-item[data-tab]').forEach(el => el.addEventListener('click', () => switchTab(el.getAttribute('data-tab'))));
+
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            if (typeof args[0] === 'string' && ['/agendamentos','/clientes','/financeiro','/servicos','/bloqueios','/horarios'].some(r => args[0].includes(r))) {
+                const token = document.querySelector('meta[name="admin-token"]')?.content;
+                if (token && args[1]) args[1].headers = { ...args[1].headers, 'Authorization': `Bearer ${token}` };
+            }
+            return originalFetch.apply(this, args);
+        };
+
+        async function verificarAuth() {
+            try {
+                const response = await fetch('/verificar-auth');
+                const data = await response.json();
+                if (!data.autenticado) window.location.href = '/login';
+            } catch (error) { window.location.href = '/login'; }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarAuth(); setInterval(verificarAuth, 300000);
+            document.getElementById('logout-area').addEventListener('click', () => window.location.href = '/logout');
+            document.getElementById('btn-new-booking').addEventListener('click', () => document.getElementById('newBookingModal').classList.add('active'));
+            document.getElementById('btn-new-service').addEventListener('click', () => document.getElementById('newServiceModal').classList.add('active'));
+            loadBookings(); 
+        });
+
+        async function loadBookings() {
+            try {
+                const rSvc = await fetch('/servicos');
+                if(rSvc.ok) {
+                    const svcs = await rSvc.json();
+                    svcs.forEach(s => { precosGlobais[s.nome] = s.valor; temposGlobais[s.nome] = s.tempo; });
+                    const sel = document.getElementById('newServico');
+                    if (sel) sel.innerHTML = '<option value="">Selecione um serviço</option>' + svcs.map(s => `<option value="${s.nome}">${s.nome}</option>`).join('');
+                }
+                const resBook = await fetch('/agendamentos');
+                if (!resBook.ok) throw new Error(`Falha na API`); 
+                allBookings = await resBook.json();
+                allBookings.sort((a,b) => new Date(`${a.data}T${a.hora}`) - new Date(`${b.data}T${b.hora}`));
+                renderBookings(allBookings);
+                updateKPIs();
+                renderChart();
+                if (calendar) { calendar.removeAllEvents(); calendar.addEventSource(getCalendarEvents()); }
+            } catch (err) {}
+        }
+
+        function renderBookings(lista) {
+            const tbody = document.getElementById('bookings-table');
+            if(!tbody) return;
+            if (lista.length === 0) { tbody.innerHTML = `<tr><td colspan="9" class="empty-state">Nenhum agendamento encontrado.</td></tr>`; return; }
+            tbody.innerHTML = lista.map(b => {
+                const preco = precosGlobais[b.servico] || 0;
+                const zap = b.whatsapp || '-';
+                const bdgS = b.status === 'Concluído' ? 'badge-concluido' : (b.status === 'Cancelado' ? 'badge-cancelado' : 'badge-agendado');
+                const bdgP = b.status_pagamento === 'Pago' ? 'badge-pago' : 'badge-pendente';
+                return `<tr style="border-bottom: 1px solid rgba(230, 195, 122, 0.1);">
+                    <td class="font-bold" style="color: var(--text-main);">${b.nome}</td>
+                    <td style="color: var(--text-secondary);">${zap}</td>
+                    <td style="color: var(--text-main);">${formatDate(b.data)}</td>
+                    <td style="color: var(--text-main);">${b.hora}</td>
+                    <td style="color: var(--text-main);">${b.servico}</td>
+                    <td class="font-bold" style="color: var(--gold);">${formatCurrency(preco)}</td>
+                    <td><span class="badge ${bdgS}">${b.status}</span></td>
+                    <td><span class="badge ${bdgP}">${b.status_pagamento}</span></td>
+                    <td><div class="actions-group">
+                        <button class="btn-action btn-complete" onclick="alterarStatus(${b.id}, 'Concluído', '${b.status_pagamento}')" title="Concluir"><i class="fas fa-check"></i></button>
+                        <button class="btn-action btn-payment" onclick="alterarStatus(${b.id}, '${b.status}', 'Pago')" title="Receber"><i class="fas fa-money-bill"></i></button>
+                        <button class="btn-action btn-edit" onclick="abrirModalEdicao(${b.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action btn-delete" onclick="currentDeletingId=${b.id}; document.getElementById('deleteModal').classList.add('active');" title="Excluir"><i class="fas fa-trash"></i></button>
+                    </div></td></tr>`;
+            }).join('');
+        }
+
+        async function alterarStatus(id, st, pg) {
+            const b = allBookings.find(x => x.id === id);
+            if(!b) return;
+            try { await fetch(`/agendamentos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...b, status: st, status_pagamento: pg}) }); showToast('Atualizado!', 'success'); loadBookings(); } catch(e) {}
+        }
+
+        document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+            if(!currentDeletingId) return;
+            await fetch(`/agendamentos/${currentDeletingId}`, { method: 'DELETE' });
+            fecharModal('deleteModal'); loadBookings(); showToast('Deletado.', 'success');
+        });
+
+        function updateKPIs() {
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('total-bookings').innerText = allBookings.length;
+            document.getElementById('today-bookings').innerText = allBookings.filter(b => b.data === hoje).length;
+            const concluidos = allBookings.filter(b => b.status === 'Concluído' && b.status_pagamento === 'Pago');
+            const receita = concluidos.reduce((acc, b) => acc + (precosGlobais[b.servico] || 0), 0);
+            document.getElementById('revenue').innerText = formatCurrency(receita);
+            document.getElementById('average-ticket').innerText = concluidos.length ? formatCurrency(receita / concluidos.length) : 'R$ 0,00';
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('servicesChart');
+            if(!ctx) return;
+            const counts = {}; allBookings.forEach(b => counts[b.servico] = (counts[b.servico] || 0) + 1);
+            if(myServicesChart) myServicesChart.destroy();
+            myServicesChart = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: '#E6C37A', borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#7A5B35' } } } } });
+        }
+
+        async function loadClientes() {
+            try { const res = await fetch('/clientes'); allClientes = await res.json(); document.getElementById('total-clientes').innerText = allClientes.length; filtrarEOrdenarClientes(); } catch(e) {}
+        }
+
+        window.filtrarEOrdenarClientes = function() {
+            const termoBusca = document.getElementById('search-cliente').value.toLowerCase();
+            const tipoOrdenacao = document.getElementById('sort-cliente').value;
+
+            // 1. Filtra pelo nome ou pelo WhatsApp
+            let filtrados = allClientes.filter(c => {
+                // "Pega emprestado" o WhatsApp lá da lista de Agendamentos
+                const agendamento = allBookings.find(b => b.nome === c.nome);
+                c.whatsapp = agendamento && agendamento.whatsapp ? agendamento.whatsapp : '-';
+                
+                return c.nome.toLowerCase().includes(termoBusca) || c.whatsapp.includes(termoBusca);
+            });
+
+            // 2. Ordena os resultados
+            filtrados.sort((a, b) => {
+                if (tipoOrdenacao === 'nome_asc') return a.nome.localeCompare(b.nome);
+                else if (tipoOrdenacao === 'gasto_desc') return b.total_gasto - a.total_gasto;
+                else if (tipoOrdenacao === 'agendamentos_desc') return b.total_agendamentos - a.total_agendamentos;
+                else if (tipoOrdenacao === 'concluidos_desc') return b.concluidos - a.concluidos;
+                return 0;
+            });
+
+            // 3. Desenha na tela (Agora incluindo a coluna do WhatsApp)
+            const tbody = document.getElementById('clientes-table');
+            if(filtrados.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nenhum cliente encontrado.</td></tr>`; 
+                return; 
+            }
+            
+            tbody.innerHTML = filtrados.map(c => `
+                <tr style="border-bottom: 1px solid rgba(230, 195, 122, 0.1);">
+                    <td style="color: var(--text-main); font-weight: 600;"><i class="fas fa-user-circle text-amber-400 mr-2"></i>${c.nome}</td>
+                    <td style="color: var(--text-secondary);">${c.whatsapp}</td> <td class="text-center font-bold" style="color: var(--text-main);">${c.total_agendamentos}</td>
+                    <td class="text-center"><span class="badge badge-concluido">${c.concluidos}</span></td>
+                    <td class="text-center font-bold text-green-600">${formatCurrency(c.total_gasto)}</td>
+                    <td style="color: var(--text-main);">${c.ultima_visita}</td>
+                </tr>
+            `).join('');
+        };
+
+        window.aplicarFiltroFinanceiro = function(range) {
+            document.querySelectorAll('.btn-fin-filter').forEach(btn => { btn.className = btn.dataset.range === range ? 'btn-primary btn-fin-filter' : 'btn-filter secondary btn-fin-filter'; });
+            const hoje = new Date(); let inicio = new Date(); let fim = new Date();
+            if (range === 'semana') inicio.setDate(hoje.getDate() - 7);
+            else if (range === 'mes') inicio.setDate(1);
+            else if (range === 'ano') inicio.setMonth(0, 1);
+            document.getElementById('fin-data-inicio').value = inicio.toISOString().split('T')[0];
+            document.getElementById('fin-data-fim').value = fim.toISOString().split('T')[0];
+            renderFinanceiro(inicio.toISOString().split('T')[0], fim.toISOString().split('T')[0]);
+        }
+
+        window.aplicarFiltroFinanceiroCustomizado = function() {
+            document.querySelectorAll('.btn-fin-filter').forEach(btn => btn.className = 'btn-filter secondary btn-fin-filter');
+            const ini = document.getElementById('fin-data-inicio').value;
+            const fim = document.getElementById('fin-data-fim').value;
+            if(!ini || !fim) return showToast('Selecione as datas', 'error');
+            renderFinanceiro(ini, fim);
+        }
+
+        async function loadFinanceiro() { aplicarFiltroFinanceiro('mes'); }
+
+        function renderFinanceiro(dataInicioStr, dataFimStr) {
+            const todosConcluidos = allBookings.filter(b => b.status === 'Concluído' && b.status_pagamento === 'Pago');
+            const receitaTotalGeral = todosConcluidos.reduce((acc, b) => acc + (precosGlobais[b.servico] || 0), 0);
+            document.getElementById('receita-total').innerText = formatCurrency(receitaTotalGeral);
+            const bookingsFiltrados = allBookings.filter(b => b.data >= dataInicioStr && b.data <= dataFimStr);
+            const concluidosPeriodo = bookingsFiltrados.filter(b => b.status === 'Concluído' && b.status_pagamento === 'Pago');
+            const receitaPeriodo = concluidosPeriodo.reduce((acc, b) => acc + (precosGlobais[b.servico] || 0), 0);
+            document.getElementById('receita-mes').innerText = formatCurrency(receitaPeriodo);
+            const pendentesPeriodo = bookingsFiltrados.filter(b => b.status !== 'Cancelado' && b.status_pagamento === 'Pendente');
+            const valorPendente = pendentesPeriodo.reduce((acc, b) => acc + (precosGlobais[b.servico] || 0), 0);
+            document.getElementById('pagamentos-pendentes').innerText = formatCurrency(valorPendente);
+            const ticketMedio = concluidosPeriodo.length ? (receitaPeriodo / concluidosPeriodo.length) : 0;
+            document.getElementById('ticket-medio').innerText = formatCurrency(ticketMedio);
+            const d1 = new Date(dataInicioStr); const d2 = new Date(dataFimStr); const diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
+            const agrupamento = {};
+            concluidosPeriodo.forEach(b => { let chave = diffDays > 40 ? b.data.substring(0, 7) : b.data; agrupamento[chave] = (agrupamento[chave] || 0) + (precosGlobais[b.servico] || 0); });
+            const labelsRaw = Object.keys(agrupamento).sort();
+            const data = labelsRaw.map(k => agrupamento[k]);
+            const labelsFormatados = labelsRaw.map(l => { if (l.length === 7) { const p = l.split('-'); return `${p[1]}/${p[0]}`; } const p = l.split('-'); return `${p[2]}/${p[1]}`; });
+            if(window.myRevenueChart) window.myRevenueChart.destroy();
+            window.myRevenueChart = new Chart(document.getElementById('revenueChart'), { type: 'line', data: { labels: labelsFormatados, datasets: [{ label: 'Receita (R$)', data: data, borderColor: '#E6C37A', backgroundColor: 'rgba(230, 195, 122, 0.1)', fill: true, tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true, ticks: { color: '#7A5B35' } } }, x: { ticks: { color: '#7A5B35'} } } });
+        }
+
+        async function loadServicos() {
+            try { const res = await fetch('/servicos'); const svcs = await res.json(); const tbody = document.getElementById('servicos-table'); if(svcs.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Nenhum serviço.</td></tr>`; return; } tbody.innerHTML = svcs.map(s => `<tr><td class="font-bold" style="color: var(--text-main);">${s.nome}</td><td style="color: var(--text-secondary);">${s.tempo} min</td><td class="font-bold" style="color: var(--gold);">${formatCurrency(s.valor)}</td><td class="text-center"><button class="btn-action btn-delete" onclick="if(confirm('Excluir?')) fetch('/servicos/${s.id}',{method:'DELETE'}).then(()=>loadServicos())"><i class="fas fa-trash"></i></button></td></tr>`).join(''); } catch(e) {}
+        }
+
+        const diasSemanaStr = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+        async function loadHorarios() {
+            try { const res = await fetch('/horarios'); const horarios = await res.json(); const cont = document.getElementById('horarios-container'); cont.innerHTML = horarios.map(h => `<div class="flex items-center gap-4 p-4 rounded-lg" style="background: var(--bg-body); border: 1px solid var(--border-gold);"><div style="width: 150px; font-weight: 600; color: var(--text-main);">${diasSemanaStr[h.dia_semana]}</div><div class="flex items-center gap-2"><label class="toggle-switch"><input type="checkbox" id="aberto-${h.dia_semana}" ${h.aberto ? 'checked' : ''} onchange="toggleHorarioInputs(${h.dia_semana})"><span class="toggle-slider"></span></label><span id="texto-aberto-${h.dia_semana}" class="toggle-label-text text-sm" style="color: ${h.aberto ? '#22c55e' : '#ef4444'};">${h.aberto ? 'Aberto' : 'Fechado'}</span></div><input type="time" id="abertura-${h.dia_semana}" value="${h.hora_abertura.substring(0,5)}" class="input-field" style="margin-bottom:0;" ${!h.aberto ? 'disabled opacity-50' : ''}><span style="color: var(--text-secondary);">às</span><input type="time" id="fechamento-${h.dia_semana}" value="${h.hora_fechamento.substring(0,5)}" class="input-field" style="margin-bottom:0;" ${!h.aberto ? 'disabled opacity-50' : ''}></div>`).join(''); } catch(e) {}
+        }
+
+        window.toggleHorarioInputs = function(dia) { const isChecked = document.getElementById(`aberto-${dia}`).checked; document.getElementById(`abertura-${dia}`).disabled = !isChecked; document.getElementById(`fechamento-${dia}`).disabled = !isChecked; document.getElementById(`abertura-${dia}`).style.opacity = isChecked ? '1' : '0.5'; document.getElementById(`fechamento-${dia}`).style.opacity = isChecked ? '1' : '0.5'; const textoLabel = document.getElementById(`texto-aberto-${dia}`); if (isChecked) { textoLabel.innerText = "Aberto"; textoLabel.style.color = "#22c55e"; } else { textoLabel.innerText = "Fechado"; textoLabel.style.color = "#ef4444"; } };
+        window.salvarHorarios = async function(e) { e.preventDefault(); const payload = []; for(let i=0; i<7; i++) { payload.push({ dia_semana: i, aberto: document.getElementById(`aberto-${i}`).checked, hora_abertura: document.getElementById(`abertura-${i}`).value, hora_fechamento: document.getElementById(`fechamento-${i}`).value }); } try { await fetch('/horarios', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); showToast('Horários salvos!', 'success'); } catch(e) {} };
+        window.toggleTipoBloqueio = function() { const tipo = document.querySelector('input[name="tipo-bloqueio"]:checked').value; const divHoras = document.getElementById('div-bloqueio-horas'); if(tipo === 'periodo') { divHoras.style.display = 'flex'; document.getElementById('bloqueio-inicio').required = true; document.getElementById('bloqueio-fim').required = true; } else { divHoras.style.display = 'none'; document.getElementById('bloqueio-inicio').required = false; document.getElementById('bloqueio-fim').required = false; document.getElementById('bloqueio-inicio').value = ''; document.getElementById('bloqueio-fim').value = ''; } }
+
+        async function loadBloqueios() {
+            try { const res = await fetch('/bloqueios'); const blqs = await res.json(); const tbody = document.getElementById('bloqueios-table'); if(blqs.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="empty-state">Nenhum bloqueio.</td></tr>`; return; } tbody.innerHTML = blqs.map(b => { let txtData = formatDate(b.data); if (b.hora_inicio && b.hora_fim) { txtData += `<br><span style="color: var(--gold); font-size: 0.85em;">${b.hora_inicio.substring(0,5)} às ${b.hora_fim.substring(0,5)}</span>`; } else { txtData += `<br><span style="color: var(--accent); font-size: 0.85em;">Dia Inteiro</span>`; } return `<tr><td style="color: var(--text-main); line-height: 1.4;">${txtData}</td><td style="color: var(--text-secondary);">${b.motivo}</td><td class="text-center"><button class="btn-action btn-complete" onclick="if(confirm('Desbloquear?')) fetch('/bloqueios/${b.id}',{method:'DELETE'}).then(()=>loadBloqueios())"><i class="fas fa-unlock"></i></button></td></tr>`; }).join(''); } catch(e) {}
+        }
+
+        document.getElementById('form-bloqueio').addEventListener('submit', async (e) => { e.preventDefault(); const tipo = document.querySelector('input[name="tipo-bloqueio"]:checked').value; const payload = { data: document.getElementById('data-bloqueio').value, motivo: document.getElementById('motivo-bloqueio').value, hora_inicio: tipo === 'periodo' ? document.getElementById('bloqueio-inicio').value + ":00" : null, hora_fim: tipo === 'periodo' ? document.getElementById('bloqueio-fim').value + ":00" : null }; try { await fetch('/bloqueios', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }); e.target.reset(); toggleTipoBloqueio(); loadBloqueios(); showToast('Sucesso!', 'success'); } catch(e) {} });
+
+        document.getElementById('newBookingForm').addEventListener('submit', async (e) => { e.preventDefault(); try { const res = await fetch('/agendar', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ nome: document.getElementById('newNome').value, whatsapp: document.getElementById('newTelefone').value || "", data: document.getElementById('newData').value, hora: document.getElementById('newHora').value, servico: document.getElementById('newServico').value }) }); if(!res.ok) { const erro = await res.json(); throw new Error(erro.detail || 'Horário indisponível'); } fecharModal('newBookingModal'); e.target.reset(); loadBookings(); showToast('Agendado!', 'success'); } catch(e) { showToast(e.message, 'error'); } });
+        document.getElementById('newServiceForm').addEventListener('submit', async (e) => { e.preventDefault(); try { await fetch('/servicos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ nome: document.getElementById('servicoNome').value, tempo: parseInt(document.getElementById('servicoTempo').value), valor: parseFloat(document.getElementById('servicoValor').value.replace(',','.')) }) }); fecharModal('newServiceModal'); e.target.reset(); loadServicos(); loadBookings(); showToast('Serviço criado!', 'success'); } catch(e) {} });
+
+        window.abrirModalEdicao = function(id) { const b = allBookings.find(x => x.id === id); if(!b) return; currentEditingId = id; document.getElementById('editServico').innerHTML = document.getElementById('newServico').innerHTML; document.getElementById('editNome').value = b.nome; document.getElementById('editTelefone').value = b.whatsapp || ''; document.getElementById('editData').value = b.data; document.getElementById('editHora').value = b.hora; document.getElementById('editServico').value = b.servico; document.getElementById('editStatus').value = b.status; document.getElementById('editPagamento').value = b.status_pagamento; document.getElementById('editModal').classList.add('active'); };
+        document.getElementById('editForm').addEventListener('submit', async (e) => { e.preventDefault(); if(!currentEditingId) return; const payload = { nome: document.getElementById('editNome').value, whatsapp: document.getElementById('editTelefone').value, data: document.getElementById('editData').value, hora: document.getElementById('editHora').value, servico: document.getElementById('editServico').value, status: document.getElementById('editStatus').value, status_pagamento: document.getElementById('editPagamento').value }; try { const res = await fetch(`/agendamentos/${currentEditingId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }); if(!res.ok) throw new Error(); fecharModal('editModal'); loadBookings(); showToast('Editado!', 'success'); } catch(e) {} });
+
+        window.toggleAgendaView = function(view) {
+            const listEl = document.getElementById('agenda-list-view'); const calEl = document.getElementById('agenda-calendar-view'); const btnList = document.getElementById('btn-view-list'); const btnCal = document.getElementById('btn-view-calendar');
+            if (view === 'list') { listEl.style.display = 'block'; calEl.style.display = 'none'; btnList.className = 'btn-primary'; btnCal.className = 'btn-secondary'; } 
+            else { listEl.style.display = 'none'; calEl.style.display = 'block'; btnCal.className = 'btn-primary'; btnList.className = 'btn-secondary'; if (!calendar) { const calendarEl = document.getElementById('calendar'); calendar = new FullCalendar.Calendar(calendarEl, { initialView: 'timeGridWeek', locale: 'pt-br', headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }, buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' }, slotMinTime: '07:00:00', slotMaxTime: '23:00:00', allDaySlot: false, slotEventOverlap: false, expandRows: true, events: getCalendarEvents(), eventClick: function(info) { abrirModalEdicao(info.event.extendedProps.dbId); } }); calendar.render(); } else { calendar.render(); } }
+        };
+
+        function getCalendarEvents() { return allBookings.map(b => { const tempoMinutos = temposGlobais[b.servico] || 30; const startTime = new Date(`${b.data}T${b.hora}`); const endTime = new Date(startTime.getTime() + tempoMinutos * 60000); let color = '#B88E4B'; if(b.status === 'Concluído') color = '#22c55e'; if(b.status === 'Cancelado') color = '#ef4444'; return { title: `${b.nome} - ${b.servico}`, start: startTime, end: endTime, backgroundColor: color, extendedProps: { dbId: b.id } }; }); }
+    </script>
+</body>
+</html>

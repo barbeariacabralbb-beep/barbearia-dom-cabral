@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - Dom Cabral Barbershop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+    <style>
+        :root {
+            --bg-body: #111111; --bg-card: #1C1C1C; --bg-card-hover: #2A2A2A;
+            --text-main: #F2F2F2; --text-secondary: #A0A0A0;
+            --gold: #E6C37A; --bronze: #B88E4B; --accent: #10b981;
+            --border-color: rgba(230, 195, 122, 0.15);
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; }
+        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
+
+        .app-container {
+            width: 100%; max-width: 480px; background: #161616; min-height: 100vh;
+            position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.8); display: flex; flex-direction: column;
+        }
+
+        .app-header {
+            padding: 24px 20px; background: linear-gradient(180deg, #0a0a0a 0%, #161616 100%);
+            border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .progress-bar { display: flex; gap: 8px; padding: 20px; }
+        .progress-step { flex: 1; height: 4px; background: var(--bg-card-hover); border-radius: 4px; transition: 0.3s; }
+        .progress-step.active { background: var(--gold); }
+
+        .step-container { display: none; padding: 0 20px 40px 20px; animation: fadeIn 0.4s ease; flex: 1; }
+        .step-container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: var(--text-main); }
+
+        .service-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;
+            padding: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+        }
+        .service-card:hover, .service-card.selected { border-color: var(--gold); background: var(--bg-card-hover); }
+        .service-card.selected i { color: var(--gold); }
+
+        .time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .time-pill { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 0; text-align: center; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .time-pill:hover, .time-pill.selected { background: var(--gold); color: #000; border-color: var(--gold); }
+
+        .input-field { width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px; border-radius: 12px; color: #fff; margin-bottom: 16px; outline: none; transition: 0.3s; font-size: 1rem; font-family: 'Inter', sans-serif;}
+        .input-field:focus { border-color: var(--gold); }
+        /* Ajuste pro ícone de calendário nativo ficar claro no tema escuro */
+        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        
+        .btn-bottom {
+            background: var(--bronze); color: white; width: 100%; padding: 16px; border-radius: 12px; font-weight: 600; font-size: 1.1rem; border: none; cursor: pointer; transition: 0.3s; margin-top: 20px; box-shadow: 0 4px 15px rgba(184, 142, 75, 0.3);
+        }
+        .btn-bottom:hover { background: var(--gold); color: #000; }
+        .btn-bottom:disabled { background: var(--bg-card-hover); color: var(--text-secondary); cursor: not-allowed; box-shadow: none; }
+        .btn-back { background: transparent; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; border: none; padding: 8px; }
+        .btn-back:hover { color: var(--text-main); }
+
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 500; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+   
+   
+    /* ==========================================
+           TELA DE CARREGAMENTO (SPLASH SCREEN)
+           ========================================== */
+        .splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #111111; z-index: 9999;
+            display: flex; align-items: center; justify-content: center; padding: 32px;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .splash-card {
+            background-color: #1C1C1C; max-width: 520px; width: 100%;
+            padding: 48px 32px 40px; border-radius: 32px; text-align: center;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(230, 195, 122, 0.2);
+            position: relative; overflow: hidden;
+        }
+        .splash-card::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, #E6C37A, transparent);
+            animation: shimmer 3s infinite;
+        }
+        .splash-logo {
+            width: 100%; max-width: 180px; height: auto; margin: 0 auto 32px auto; display: block;
+            animation: gentlePulse 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(230, 195, 122, 0.2));
+        }
+        .splash-title { font-size: 1.8rem; font-weight: 500; color: #F2F2F2; letter-spacing: -0.3px; margin-bottom: 16px; animation: fadeInUp 0.6s ease-out; }
+        .splash-title span { font-weight: 700; color: #E6C37A; }
+        .splash-tagline {
+            font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #E6C37A 0%, #B88E4B 100%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 24px; letter-spacing: -0.5px; animation: fadeInUp 0.6s ease-out 0.1s backwards;
+        }
+        .splash-desc { font-size: 1rem; line-height: 1.6; color: #F2F2F2; opacity: 0.85; margin-bottom: 32px; animation: fadeInUp 0.6s ease-out 0.2s backwards; }
+        .splash-credit {
+            font-size: 0.75rem; color: #F2F2F2; opacity: 0.35; border-top: 1px solid rgba(230, 195, 122, 0.2);
+            padding-top: 24px; margin-top: 8px; animation: fadeInUp 0.6s ease-out 0.3s backwards;
+        }
+        @keyframes gentlePulse { 0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 12px rgba(230, 195, 122, 0.2)); } 50% { transform: scale(1.03); filter: drop-shadow(0 6px 18px rgba(230, 195, 122, 0.35)); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+    
+        /* ==========================================
+           BOTÕES DE CONTATO E REDES SOCIAIS
+           ========================================== */
+        .social-links {
+            display: flex; flex-direction: column; gap: 12px;
+            margin-top: 32px; padding-top: 24px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .social-btn {
+            display: flex; align-items: center; gap: 16px; padding: 14px 16px;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 12px; color: var(--text-main); text-decoration: none;
+            transition: 0.3s; font-size: 0.95rem; font-weight: 500;
+        }
+        .social-btn:hover { border-color: var(--gold); background: var(--bg-card-hover); }
+        .social-btn i.icon-main { font-size: 1.4rem; color: var(--gold); width: 24px; text-align: center; }
+        .social-btn i.icon-arrow { font-size: 0.8rem; color: var(--text-secondary); }
+
+    </style>
+</head>
+<body>
+
+    <div class="splash-screen" id="splash-screen">
+    <div class="splash-card">
+        <img src="/static/Logo_Cabral.png" alt="Logo Dom Cabral" class="splash-logo">
+        <h1 class="splash-title">Bem-vindo à <span>Dom Cabral</span></h1>
+        <div class="splash-tagline">Seu estilo,<br>nosso compromisso</div>
+        <p class="splash-desc">
+            Experimente o melhor atendimento em barbearia.<br>
+            Profissionais qualificados, ambiente acolhedor e resultados que falam por si.
+        </p>
+        <div class="splash-credit">
+            Developed by Giovani Sanches and Kauê Feliciano
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    <div class="app-header">
+        <button class="btn-back" id="btn-back" style="visibility: hidden;" onclick="prevStep()"><i class="fas fa-arrow-left"></i></button>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="/static/Logo_Cabral.png" alt="Logo" style="height: 40px;">
+            <h1 style="font-weight: 700; font-size: 1.1rem; letter-spacing: 1px;">DOM CABRAL</h1>
+        </div>
+        <div style="width: 32px;"></div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-step active" id="prog-1"></div>
+        <div class="progress-step" id="prog-2"></div>
+        <div class="progress-step" id="prog-3"></div>
+        <div class="progress-step" id="prog-4"></div>
+    </div>
+
+    <div class="step-container active" id="step-1">
+        <h2 class="section-title">Para começarmos...</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">Preencha seus dados para podermos te identificar no agendamento.</p>
+        
+        <label style="color: var(--text-main); font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; display: block;">Seu Nome</label>
+        <input type="text" id="cliente-nome" class="input-field" placeholder="Ex: João da Silva">
+        
+        <label style="color: var(--text-main); font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; display: block;">WhatsApp</label>
+        <input type="tel" id="cliente-whatsapp" class="input-field" placeholder="(11) 99999-9999">
+        
+        <button class="btn-bottom" id="btn-next-1" onclick="validarPasso1()">Continuar</button>
+        <div class="social-links">
+            <h3 style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Contato & Localização</h3>
+            
+            <a href="https://maps.google.com/?q=R.+Ver.+Túlio+Putini,+Bueno+Brandão+-+MG,+37578-000" target="_blank" class="social-btn">
+                <i class="fas fa-map-marker-alt icon-main"></i>
+                <span style="flex: 1;">Endereço</span>
+                <i class="fas fa-chevron-right icon-arrow"></i>
+            </a>
+
+            <a href="https://www.instagram.com/odicabarber/" target="_blank" class="social-btn">
+                <i class="fab fa-instagram icon-main"></i>
+                <span style="flex: 1;">Instagram</span>
+                <i class="fas fa-chevron-right icon-arrow"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="step-container" id="step-2">
+        <h2 class="section-title">O que vamos fazer hoje, <span id="display-nome" style="color: var(--gold);"></span>?</h2>
+        <div id="services-list" style="margin-top: 20px;">
+            <div class="text-center text-gray-500 py-8"><i class="fas fa-spinner fa-spin text-2xl"></i><br>Buscando serviços...</div>
+        </div>
+        <button class="btn-bottom" id="btn-next-2" disabled onclick="nextStep(3)">Continuar</button>
+    </div>
+
+    <div class="step-container" id="step-3">
+        <h2 class="section-title">Escolha a Data</h2>
+        
+        <input type="date" id="data-agendamento" class="input-field" onchange="buscarHorarios()" style="cursor: pointer;">
+
+        <h2 class="section-title" style="margin-top: 10px;">Horários Disponíveis</h2>
+        <div class="time-grid" id="time-grid">
+            <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px; background: var(--bg-card); border-radius: 12px;">
+                Selecione uma data no calendário acima para ver os horários.
+            </div>
+        </div>
+        <button class="btn-bottom" id="btn-next-3" disabled onclick="nextStep(4)">Revisar Agendamento</button>
+    </div>
+
+    <div class="step-container" id="step-4">
+        <h2 class="section-title">Tudo certo?</h2>
+        <div style="background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+            <h3 style="color: var(--gold); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 16px; font-weight: 700;">Resumo do Agendamento</h3>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center;">
+                <div style="background: rgba(230, 195, 122, 0.1); padding: 12px; border-radius: 50%; color: var(--gold);"><i class="fas fa-user"></i></div>
+                <div>
+                    <div style="font-weight: 600;" id="resumo-nome">-</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);" id="resumo-whatsapp">-</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary);">Serviço</span>
+                <span style="font-weight: 600; text-align: right;" id="resumo-servico">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary);">Data</span>
+                <span style="font-weight: 600;" id="resumo-data">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                <span style="color: var(--text-secondary);">Hora</span>
+                <span style="font-weight: 600;" id="resumo-hora">-</span>
+            </div>
+            <div style="border-top: 1px dashed var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700;">
+                <span>Total</span>
+                <span style="color: var(--gold);" id="resumo-preco">-</span>
+            </div>
+        </div>
+
+        <button class="btn-bottom" id="btn-finalizar" style="background: var(--accent); color: white;" onclick="finalizarAgendamento()">
+            <i class="fas fa-check-circle mr-2"></i> Confirmar Agendamento
+        </button>
+    </div>
+
+    <div class="step-container" id="step-5" style="text-align: center; padding-top: 60px;">
+        <i class="fas fa-check-circle" style="font-size: 5rem; color: var(--accent); margin-bottom: 24px;"></i>
+        <h2 style="font-size: 1.5rem; margin-bottom: 12px;">Agendado com Sucesso!</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 40px;">Te esperamos na Dom Cabral Barbershop.</p>
+        <button class="btn-bottom" onclick="location.reload()">Fazer novo agendamento</button>
+    </div>
+
+</div>
+
+<script>
+    const API_BASE = window.location.origin;
+    let currentStep = 1;
+    let servicosDB = [];
+    
+    // Rascunho Seguro do Agendamento
+    let bookingDraft = { nome: '', whatsapp: '', servicoNome: '', servicoPreco: 0, dataRaw: '', dataFormatada: '', hora: '' };
+
+    function showToast(msg) {
+        const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = msg;
+        document.body.appendChild(t); setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+    }
+
+    // Configura o Calendário para não permitir dias no passado
+    document.addEventListener("DOMContentLoaded", () => {
+        const dataHoje = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('data-agendamento');
+        if(dateInput) dateInput.min = dataHoje;
+    });
+
+    // MÁSCARA WHATSAPP
+    document.getElementById('cliente-whatsapp').addEventListener('input', function (e) {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
+    // ==========================================
+    // NAVEGAÇÃO E VALIDAÇÕES
+    // ==========================================
+    function validarPasso1() {
+        const nome = document.getElementById('cliente-nome').value.trim();
+        const whats = document.getElementById('cliente-whatsapp').value.trim();
+        if(!nome || whats.length < 14) return showToast('Preencha seu nome e um WhatsApp válido.');
+        
+        bookingDraft.nome = nome;
+        bookingDraft.whatsapp = whats;
+        document.getElementById('display-nome').innerText = nome.split(' ')[0];
+        nextStep(2);
+    }
+
+    function nextStep(step) {
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep = step;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        
+        for(let i=1; i<=4; i++) {
+            const dot = document.getElementById(`prog-${i}`);
+            if(dot) {
+                if(i <= currentStep) dot.classList.add('active');
+                else dot.classList.remove('active');
+            }
+        }
+        document.getElementById('btn-back').style.visibility = currentStep > 1 ? 'visible' : 'hidden';
+        if(step === 4) preencherResumo();
+    }
+
+    function prevStep() {
+        if(currentStep === 1) return;
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep--;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        
+        for(let i=1; i<=4; i++) {
+            const dot = document.getElementById(`prog-${i}`);
+            if(dot) {
+                if(i <= currentStep) dot.classList.add('active');
+                else dot.classList.remove('active');
+            }
+        }
+        if(currentStep === 1) document.getElementById('btn-back').style.visibility = 'hidden';
+    }
+
+    // ==========================================
+    // PASSO 2: SERVIÇOS
+    // ==========================================
+    async function loadServicos() {
+        try {
+            const res = await fetch(`${API_BASE}/servicos`);
+            servicosDB = await res.json();
+            const list = document.getElementById('services-list');
+            if(servicosDB.length === 0) { list.innerHTML = '<p class="text-center text-gray-500">Nenhum serviço disponível.</p>'; return; }
+            
+            list.innerHTML = servicosDB.map(s => `
+                <div class="service-card" onclick="selecionarServico('${s.nome}', ${s.valor}, this)">
+                    <div>
+                        <h3 style="font-weight: 600; font-size: 1.05rem;">${s.nome}</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;"><i class="far fa-clock mr-1"></i> ${s.tempo} min</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="color: var(--gold); font-weight: 700; font-size: 1.1rem;">R$ ${s.valor.toFixed(2).replace('.',',')}</p>
+                        <i class="fas fa-check-circle" style="color: var(--bg-card); transition: 0.3s;"></i>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { document.getElementById('services-list').innerHTML = 'Erro ao carregar serviços.'; }
+    }
+
+    function selecionarServico(nome, preco, cardElement) {
+        document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+        cardElement.classList.add('selected');
+        bookingDraft.servicoNome = nome;
+        bookingDraft.servicoPreco = preco;
+        document.getElementById('btn-next-2').disabled = false;
+        
+        // Se o cliente trocar o serviço, precisamos limpar a data/hora para ele não agendar algo que não caiba mais no espaço
+        document.getElementById('data-agendamento').value = '';
+        document.getElementById('time-grid').innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 20px; background: var(--bg-card); border-radius: 12px;">Selecione uma data no calendário acima para ver os horários.</div>`;
+        bookingDraft.hora = '';
+        document.getElementById('btn-next-3').disabled = true;
+    }
+
+    // ==========================================
+    // PASSO 3: BUSCA DE HORÁRIOS (Calendário)
+    // ==========================================
+    async function buscarHorarios() {
+        const dateVal = document.getElementById('data-agendamento').value;
+        if(!dateVal) return;
+        
+        bookingDraft.dataRaw = dateVal;
+        const [y, m, d] = dateVal.split('-');
+        bookingDraft.dataFormatada = `${d}/${m}/${y}`;
+        bookingDraft.hora = ''; 
+        document.getElementById('btn-next-3').disabled = true;
+
+        const timeGrid = document.getElementById('time-grid');
+        timeGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--gold);"><i class="fas fa-spinner fa-spin mr-2"></i>Buscando horários...</div>`;
+
+        try {
+            const res = await fetch(`${API_BASE}/horarios-disponiveis?data=${dateVal}&servico=${encodeURIComponent(bookingDraft.servicoNome)}`);
+            const data = await res.json();
+            
+            if(!data.horarios || data.horarios.length === 0) {
+                timeGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444; background: rgba(239,68,68,0.1); padding: 16px; border-radius: 8px;">Sem horários vagos para este dia.</div>`;
+                return;
+            }
+
+            timeGrid.innerHTML = data.horarios.map(h => `<div class="time-pill" onclick="selecionarHora('${h}', this)">${h}</div>`).join('');
+        } catch(e) {
+            timeGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Erro ao buscar horários.</div>`;
+        }
+    }
+
+    function selecionarHora(hora, pillElement) {
+        document.querySelectorAll('.time-pill').forEach(p => p.classList.remove('selected'));
+        pillElement.classList.add('selected');
+        bookingDraft.hora = hora;
+        document.getElementById('btn-next-3').disabled = false;
+    }
+
+    // ==========================================
+    // PASSO 4: FINALIZAÇÃO
+    // ==========================================
+    function preencherResumo() {
+        document.getElementById('resumo-nome').innerText = bookingDraft.nome;
+        document.getElementById('resumo-whatsapp').innerText = bookingDraft.whatsapp;
+        document.getElementById('resumo-servico').innerText = bookingDraft.servicoNome;
+        document.getElementById('resumo-data').innerText = bookingDraft.dataFormatada;
+        document.getElementById('resumo-hora').innerText = bookingDraft.hora;
+        document.getElementById('resumo-preco').innerText = `R$ ${bookingDraft.servicoPreco.toFixed(2).replace('.',',')}`;
+    }
+
+    async function finalizarAgendamento() {
+        const btn = document.getElementById('btn-finalizar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processando...';
+
+        try {
+            const response = await fetch(`${API_BASE}/agendar`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    nome: bookingDraft.nome, whatsapp: bookingDraft.whatsapp, 
+                    data: bookingDraft.dataRaw, hora: bookingDraft.hora, servico: bookingDraft.servicoNome 
+                })
+            });
+
+            if (!response.ok) {
+                const erro = await response.json();
+                throw new Error(erro.detail || "Erro ao agendar");
+            }
+
+            // Sucesso!
+            document.getElementById('btn-back').style.display = 'none';
+            document.getElementById('step-4').classList.remove('active');
+            document.getElementById('step-5').classList.add('active');
+
+        } catch (error) {
+            showToast(error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Confirmar Agendamento';
+        }
+    }
+
+    // ==========================================
+    // SPLASH SCREEN (TELA DE CARREGAMENTO)
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", () => {
+        const splash = document.getElementById('splash-screen');
+        // Mantém a tela visível por 3 segundos (3000 milissegundos)
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            splash.style.visibility = 'hidden';
+            
+            // Remove a tela do código após a animação de sumir (0.8s)
+            setTimeout(() => {
+                splash.remove();
+            }, 800);
+        }, 6000);
+    });
+
+    loadServicos();
+</script>
+</body>
+</html>

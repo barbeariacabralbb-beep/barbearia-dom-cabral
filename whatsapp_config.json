@@ -1,0 +1,6 @@
+{
+  "tempoAntecedenciaMinutos": 60,
+  "lembretesAtivos": true,
+  "horarioMatinal": "08:00",
+  "horarioVespertino": "13:00"
+}

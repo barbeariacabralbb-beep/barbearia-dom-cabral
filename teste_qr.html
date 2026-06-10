@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste QR Code</title>
+</head>
+<body>
+    <h1>Teste do WhatsApp Bot</h1>
+    <div id="status">Carregando status...</div>
+    <div id="qr-container"></div>
+    
+    <script>
+        async function testar() {
+            try {
+                const response = await fetch('/api/whatsapp/status');
+                const data = await response.json();
+                
+                document.getElementById('status').innerHTML = `
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                if (data.qrCode) {
+                    document.getElementById('qr-container').innerHTML = `
+                        <img src="${data.qrCode}" style="width: 300px; border: 2px solid gold;">
+                        <p>QR Code gerado! Escaneie com o WhatsApp.</p>
+                    `;
+                } else if (data.qr) {
+                    document.getElementById('qr-container').innerHTML = `
+                        <img src="${data.qr}" style="width: 300px; border: 2px solid gold;">
+                        <p>QR Code gerado! Escaneie com o WhatsApp.</p>
+                    `;
+                } else {
+                    document.getElementById('qr-container').innerHTML = '<p>Aguardando QR Code... Certifique-se que o index.js está rodando.</p>';
+                }
+            } catch(e) {
+                document.getElementById('status').innerHTML = `<p style="color:red">Erro: ${e.message}</p>`;
+            }
+        }
+        
+        testar();
+        setInterval(testar, 5000);
+    </script>
+</body>
+</html>
