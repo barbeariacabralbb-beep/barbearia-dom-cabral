@@ -33,7 +33,21 @@ async function carregarEstatisticas() {
 
 async function carregarStatusBot() {
     try {
-        const response = await fetch('/api/whatsapp/status');
+        const response = await fetch('/api/whatsapp/status', {
+            credentials: 'same-origin',
+            cache: 'no-store'
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Erro ao buscar status do WhatsApp: ${response.status}`);
+        }
+
+        const data = await response.json();
         const data = await response.json();
         
         const statusContainer = document.getElementById('bot-status-conteudo');
