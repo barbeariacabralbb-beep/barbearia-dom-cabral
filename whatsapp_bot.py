@@ -106,6 +106,7 @@ class WhatsAppBot:
             self.browser = await self.playwright.chromium.launch_persistent_context(
                 user_data_dir=self.session_dir,
                 headless=True,
+                channel="chromium",
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
