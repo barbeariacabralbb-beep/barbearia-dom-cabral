@@ -84,7 +84,36 @@ class WhatsAppBot:
         buffered = BytesIO()
         img.save(buffered, format="PNG")
         return f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode()}"
+    async def _capture_qr_base64(self, page):
+        selectors = [
+            "[data-ref]",
+            "[data-ref] canvas",
+            "canvas",
+        ]
 
+        for selector in selectors:
+            try:
+                locator = page.locator(selector)
+
+                if await locator.count() > 0:
+                    element = locator.first
+                    await element.scroll_into_view_if_needed(timeout=5000) 
+
+                    png_bytes = await element.screenshot(type="png")
+
+                    qr_base64 = base64.b64encode(png_bytes).decode()
+
+                    print(
+                        f"📸 QR Code original capturado do WhatsApp Web | seletor={selector}",
+                        flush=True
+                    )
+
+                    return f"data:image/png;base64,{qr_base64}"
+
+            except Exception as e:
+                print(f"⚠️ Falha ao capturar QR pelo seletor {selector}: {e}", flush=True)
+
+        return None
     async def _ensure_page(self):
         if self.page and not self.page.is_closed():
             return self.page
@@ -160,10 +189,18 @@ class WhatsAppBot:
 
                         if qr_data:
                             tentativas_sem_qr = 0
+
                             if qr_data != ultimo_qr_data:
                                 ultimo_qr_data = qr_data
-                                print("📱 Novo QR Code gerado. Acesse o painel para escanear.")
-                                self._update_status("qr_ready", self._generate_qr_base64(qr_data))
+
+                                qr_imagem_original = await self._capture_qr_base64(page)
+
+                                if qr_imagem_original:
+                                    print("📱 Novo QR Code original capturado. Acesse o painel para escanear.", flush=True)
+                                    self._update_status("qr_ready", qr_imagem_original)
+                                else:
+                                    print("⚠️ Não consegui capturar o QR original. Usando fallback gerado por Python.", flush=True)
+                                    self._update_status("qr_ready", self._generate_qr_base64(qr_data))
                         else:
                             tentativas_sem_qr += 1
                             if self.status_texto != "connecting":
