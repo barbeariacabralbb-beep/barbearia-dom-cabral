@@ -153,6 +153,11 @@ class WhatsAppBot:
             )
 
             self.page = self.browser.pages[0] if self.browser.pages else await self.browser.new_page()
+            self.page.on("close", lambda: print("❌ Página do WhatsApp foi fechada!", flush=True))
+            self.browser.on("close", lambda: print("❌ Chromium/Browser foi fechado!", flush=True))
+
+            self.page.on("console", lambda msg: print(f"🌐 Console WhatsApp [{msg.type}]: {msg.text}", flush=True))
+            self.page.on("pageerror", lambda exc: print(f"💥 Erro JS na página do WhatsApp: {exc}", flush=True))
             await self.page.goto("https://web.whatsapp.com", wait_until="domcontentloaded", timeout=60000)
             print("🌐 WhatsApp Web carregado. Buscando QR Code...")
 
@@ -175,6 +180,12 @@ class WhatsAppBot:
                         f"🔍 Verificando WhatsApp | url={page_url} | titulo={titulo}",
                         flush=True
                     )
+                    print(
+                            f"🧪 Estado da página | "
+                            f"page_fechada={self.page.is_closed()} | "
+                            f"url={self.page.url}",
+                            flush=True
+                        )
                     is_logged = await page.locator('div[id="pane-side"]').count() > 0
                     if is_logged:
                         if not self.connected:
