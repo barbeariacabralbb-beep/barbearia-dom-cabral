@@ -50,7 +50,8 @@ class WhatsAppBot:
 
         if status_texto == "qr_ready" and qr_code:
             self.qr_code_base64 = qr_code
-        elif status_texto in {"connected", "connecting", "disconnected", "error"}:
+
+        elif status_texto in {"connected", "disconnected", "error"}:
             self.qr_code_base64 = None
 
         dados = {
@@ -60,11 +61,20 @@ class WhatsAppBot:
             "erro": self.last_error,
             "ultimaAtualizacao": datetime.now().isoformat(),
         }
+
+        print(
+            f"📊 Status WhatsApp atualizado: {status_texto} | "
+            f"connected={self.connected} | "
+            f"qr_presente={bool(self.qr_code_base64)} | "
+            f"erro={erro}",
+            flush=True
+        )
+
         try:
             with open(self.status_file, "w", encoding="utf-8") as f:
                 json.dump(dados, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"⚠️ Não foi possível salvar status do WhatsApp: {e}")
+            print(f"⚠️ Não foi possível salvar status do WhatsApp: {e}", flush=True)
 
     def _generate_qr_base64(self, qr_string):
         qr = qrcode.QRCode(version=1, box_size=10, border=2)

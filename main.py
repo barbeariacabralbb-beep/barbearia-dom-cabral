@@ -10,7 +10,7 @@ from typing import List, Optional
 import secrets
 import json
 import os
-
+#teste 
 from whatsapp_bot import bot_instance
 
 from sqlalchemy import create_engine, Column, Integer, String, Date, Time, Boolean, func, case, Float, inspect, text
@@ -497,6 +497,7 @@ async def api_whatsapp_status(request: Request):
     verificar_token_api(request)
 
     status_texto = bot_instance.status_texto or "disconnected"
+
     status_front_map = {
         "connected": "CONECTADO",
         "qr_ready": "AGUARDANDO_QR",
@@ -506,12 +507,20 @@ async def api_whatsapp_status(request: Request):
         "error": "ERRO",
     }
 
+    print(
+        f"🔎 API /api/whatsapp/status | "
+        f"status={status_texto} | "
+        f"connected={bot_instance.connected} | "
+        f"qr_presente={bool(bot_instance.qr_code_base64)} | "
+        f"erro={getattr(bot_instance, 'last_error', None)}",
+        flush=True
+    )
+
     return {
         "connected": bot_instance.connected,
         "qrCode": bot_instance.qr_code_base64,
         "statusTexto": status_texto,
         "ultimaAtualizacao": datetime.now().isoformat(),
-        # Campos de compatibilidade para telas/scripts antigos
         "qr": bot_instance.qr_code_base64,
         "status": status_front_map.get(status_texto, "DESCONECTADO"),
         "erro": getattr(bot_instance, "last_error", None),
