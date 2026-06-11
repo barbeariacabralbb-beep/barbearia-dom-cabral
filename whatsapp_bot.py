@@ -139,7 +139,13 @@ class WhatsAppBot:
                     page = await self._ensure_page()
                     if not page:
                         raise RuntimeError("Página do WhatsApp não está disponível.")
+                    page_url = page.url
+                    titulo = await page.title()
 
+                    print(
+                        f"🔍 Verificando WhatsApp | url={page_url} | titulo={titulo}",
+                        flush=True
+                    )
                     is_logged = await page.locator('div[id="pane-side"]').count() > 0
                     if is_logged:
                         if not self.connected:
@@ -176,7 +182,7 @@ class WhatsAppBot:
                     print(f"⚠️ Erro durante verificação do WhatsApp: {e}")
                     await asyncio.sleep(5)
 
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
 
         except Exception as e:
             erro = str(e)
