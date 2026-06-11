@@ -32,57 +32,103 @@ async function carregarEstatisticas() {
 }
 
 async function carregarStatusBot() {
+    console.log('🔎 Buscando status do WhatsApp...');
+
     try {
         const response = await fetch('/api/whatsapp/status', {
             credentials: 'same-origin',
             cache: 'no-store'
         });
 
+        console.log('📡 Resposta /api/whatsapp/status:', response.status);
+
         if (response.status === 401) {
+            console.warn('⚠️ Sessão expirada. Redirecionando para login...');
             window.location.href = '/login';
             return;
         }
 
         if (!response.ok) {
-            throw new Error(`Erro ao buscar status do WhatsApp: ${response.status}`);
+            throw new Error(`Erro HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        const data = await response.json();
-        
+
+        console.log('📲 Status recebido:', data);
+
         const statusContainer = document.getElementById('bot-status-conteudo');
         const qrContainer = document.getElementById('bot-qrcode-container');
         const ultimaAtt = document.getElementById('bot-ultima-atualizacao');
-        
-        if (!statusContainer) return;
-        
+
+        if (!statusContainer) {
+            console.warn('⚠️ Elemento bot-status-conteudo não encontrado');
+            return;
+        }
+
         const statusMap = {
-            'connected': { text: '✅ CONECTADO', cor: '#4ade80', icon: 'fa-check-circle' },
-            'qr_ready': { text: '📱 AGUARDANDO QR', cor: '#fbbf24', icon: 'fa-qrcode' },
-            'connecting': { text: '🔄 CONECTANDO...', cor: '#fbbf24', icon: 'fa-spinner fa-spin' },
-            'disconnected': { text: '❌ DESCONECTADO', cor: '#f87171', icon: 'fa-times-circle' }
+            'connected': {
+                text: '✅ CONECTADO',
+                cor: '#4ade80',
+                icon: 'fa-check-circle',
+                desc: 'Bot pronto para enviar mensagens'
+            },
+            'qr_ready': {
+                text: '📱 AGUARDANDO QR',
+                cor: '#fbbf24',
+                icon: 'fa-qrcode',
+                desc: 'Escaneie o QR code para conectar'
+            },
+            'connecting': {
+                text: '🔄 CONECTANDO...',
+                cor: '#fbbf24',
+                icon: 'fa-spinner fa-spin',
+                desc: 'Iniciando WhatsApp Web...'
+            },
+            'authenticating': {
+                text: '🔐 AUTENTICANDO...',
+                cor: '#60a5fa',
+                icon: 'fa-spinner fa-spin',
+                desc: 'Autenticando sessão do WhatsApp...'
+            },
+            'disconnected': {
+                text: '❌ DESCONECTADO',
+                cor: '#f87171',
+                icon: 'fa-times-circle',
+                desc: 'Bot desconectado'
+            },
+            'error': {
+                text: '⚠️ ERRO',
+                cor: '#f87171',
+                icon: 'fa-exclamation-triangle',
+                desc: data.erro || 'Erro ao iniciar WhatsApp'
+            }
         };
-        
+
         const statusInfo = statusMap[data.statusTexto] || statusMap['disconnected'];
-        
+
         statusContainer.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
                 <i class="fas ${statusInfo.icon}" style="font-size: 2rem; color: ${statusInfo.cor};"></i>
                 <div>
                     <div style="font-size: 1.2rem; font-weight: 700; color: ${statusInfo.cor};">${statusInfo.text}</div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                        ${data.connected ? 'Bot pronto para enviar mensagens' : 'Escaneie o QR code para conectar'}
+                        ${statusInfo.desc}
                     </div>
                 </div>
             </div>
         `;
-        
+
         if (qrContainer) {
-            if (data.qrCode && !data.connected) {
+            if ((data.qrCode || data.qr) && !data.connected) {
+                const qrImagem = data.qrCode || data.qr;
+
                 qrContainer.innerHTML = `
                     <div style="text-align: center; padding: 16px; background: white; border-radius: 12px; display: inline-block;">
-                        <img src="${data.qrCode}" alt="QR Code WhatsApp" style="max-width: 256px; border-radius: 8px;">
+                        <img src="${qrImagem}" alt="QR Code WhatsApp" style="width: 256px; height: 256px; object-fit: contain;">
                     </div>
+                    <p style="margin-top: 12px; color: var(--text-secondary); font-size: 0.85rem;">
+                        QR Code atualizado. Escaneie pelo WhatsApp.
+                    </p>
                 `;
             } else if (data.connected) {
                 qrContainer.innerHTML = `
@@ -100,16 +146,37 @@ async function carregarStatusBot() {
                 `;
             }
         }
-        
+
         if (ultimaAtt && data.ultimaAtualizacao) {
             ultimaAtt.textContent = new Date(data.ultimaAtualizacao).toLocaleTimeString('pt-BR');
         }
-        
+
     } catch (error) {
-        console.error('❌ Erro ao carregar status:', error);
+        console.error('❌ Erro ao carregar status do WhatsApp:', error);
+
+        const statusContainer = document.getElementById('bot-status-conteudo');
+        const qrContainer = document.getElementById('bot-qrcode-container');
+
+        if (statusContainer) {
+            statusContainer.innerHTML = `
+                <div style="color: #f87171; font-weight: 700;">
+                    ⚠️ Erro ao carregar status do WhatsApp
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">
+                    ${error.message}
+                </div>
+            `;
+        }
+
+        if (qrContainer) {
+            qrContainer.innerHTML = `
+                <div style="text-align: center; padding: 32px; color: #f87171;">
+                    Não foi possível carregar o QR Code.
+                </div>
+            `;
+        }
     }
 }
-
 async function reconectarWhatsApp() {
     if (!confirm('Tem certeza que deseja reconectar?\nIsso vai limpar a sessão atual e gerar um novo QR Code.')) return;
     
@@ -202,7 +269,20 @@ async function carregarAgendamentosSelect() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('bot')?.classList.contains('active')) {
+    console.log('✅ admin_bot.js carregado');
+
+    const botTab = document.getElementById('bot');
+
+    if (botTab && botTab.classList.contains('active')) {
         initBotModule();
     }
+
+    document.querySelectorAll('[data-tab="bot"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            console.log('🤖 Aba Bot clicada. Iniciando módulo...');
+            setTimeout(() => {
+                initBotModule();
+            }, 300);
+        });
+    });
 });
