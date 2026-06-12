@@ -186,17 +186,57 @@ class WhatsAppBot:
                             f"url={self.page.url}",
                             flush=True
                         )
-                    is_logged = await page.locator('div[id="pane-side"]').count() > 0
+                    seletores_conectado = [
+                        'div[id="pane-side"]',
+                        '[aria-label="Lista de conversas"]',
+                        '[aria-label="Chat list"]',
+                        '[data-testid="chat-list"]',
+                        'div[role="grid"]',
+                    ]
+
+                    is_logged = False
+
+                    for seletor in seletores_conectado:
+                        try:
+                            count = await page.locator(seletor).count()
+                            print(f"🔎 Testando seletor conectado: {seletor} | count={count}", flush=True)
+
+                            if count > 0:
+                                is_logged = True
+                                print(f"✅ WhatsApp conectado detectado pelo seletor: {seletor}", flush=True)
+                                break
+
+                        except Exception as e:
+                            print(f"⚠️ Erro ao testar seletor {seletor}: {e}", flush=True)
+
                     if is_logged:
-                        if not self.connected:
-                            print("✅ WhatsApp conectado com sucesso!")
+                        print("✅ WhatsApp conectado com sucesso!", flush=True)
                         self._update_status("connected")
                         tentativas_sem_qr = 0
-                    else:
-                        qr_data = None
-                        qr_locator = page.locator("[data-ref]")
-                        if await qr_locator.count() > 0:
-                            qr_data = await qr_locator.first.get_attribute("data-ref")
+                        await asyncio.sleep(5)
+                        continue
+
+                    try:
+                        qr_count = await page.locator("[data-ref]").count()
+                        canvas_count = await page.locator("canvas").count()
+
+                        print(
+                            f"🧾 Diagnóstico WhatsApp | "
+                            f"qr_count={qr_count} | "
+                            f"canvas_count={canvas_count} | "
+                            f"url={page.url} | "
+                            f"titulo={await page.title()}",
+                            flush=True
+                        )
+
+                    except Exception as e:
+                        print(f"⚠️ Erro no diagnóstico da página WhatsApp: {e}", flush=True)
+
+                    qr_data = None
+                    qr_locator = page.locator("[data-ref]")
+
+                    if await qr_locator.count() > 0:
+                        qr_data = await qr_locator.first.get_attribute("data-ref")
 
                         if qr_data:
                             tentativas_sem_qr = 0
